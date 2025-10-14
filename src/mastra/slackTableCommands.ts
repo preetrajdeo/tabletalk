@@ -769,21 +769,45 @@ export async function handleTableAction(
       break;
 
     case "add_row":
-      // Add an empty row
-      const tableWithRow = {
-        ...table,
-        rows: [...table.rows, Array(table.headers.length).fill("")],
-      };
-      await openTableModal(slack, trigger_id, tableWithRow);
+      console.log("[TableAction] Adding row to table");
+      try {
+        // Add an empty row
+        const tableWithRow = {
+          ...table,
+          rows: [...table.rows, Array(table.headers.length).fill("")],
+        };
+        console.log("[TableAction] Opening modal with new row");
+        await openTableModal(slack, trigger_id, tableWithRow);
+        console.log("[TableAction] Modal opened successfully");
+      } catch (error) {
+        console.error("[TableAction] Error adding row:", error);
+        await slack.chat.postEphemeral({
+          channel: payload.channel?.id || storedChannelId,
+          user: user.id,
+          text: "❌ Failed to open edit modal. Please try again.",
+        });
+      }
       break;
 
     case "add_column":
-      // Add an empty column
-      const tableWithColumn = {
-        headers: [...table.headers, `Col ${table.headers.length + 1}`],
-        rows: table.rows.map((row) => [...row, ""]),
-      };
-      await openTableModal(slack, trigger_id, tableWithColumn);
+      console.log("[TableAction] Adding column to table");
+      try {
+        // Add an empty column
+        const tableWithColumn = {
+          headers: [...table.headers, `Col ${table.headers.length + 1}`],
+          rows: table.rows.map((row) => [...row, ""]),
+        };
+        console.log("[TableAction] Opening modal with new column");
+        await openTableModal(slack, trigger_id, tableWithColumn);
+        console.log("[TableAction] Modal opened successfully");
+      } catch (error) {
+        console.error("[TableAction] Error adding column:", error);
+        await slack.chat.postEphemeral({
+          channel: payload.channel?.id || storedChannelId,
+          user: user.id,
+          text: "❌ Failed to open edit modal. Please try again.",
+        });
+      }
       break;
 
     case "post_to_channel":
