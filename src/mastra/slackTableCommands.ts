@@ -212,7 +212,6 @@ function createTableModalView(existingTable: TableData | null, isEdit: boolean):
             text: "➕ Add Row",
           },
           action_id: "modal_add_row",
-          style: "primary",
         },
         {
           type: "button",
