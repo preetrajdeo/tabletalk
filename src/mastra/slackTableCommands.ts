@@ -623,6 +623,25 @@ export async function handleTableAction(
   const storedChannelId = data.channelId;
   const storedMessageTs = data.messageTs;
 
+  console.log("[TableAction] Parsed data:", {
+    hasTable: !!table,
+    tableHeaders: table?.headers?.length,
+    tableRows: table?.rows?.length,
+    userId: originalUserId,
+    channelId: storedChannelId
+  });
+
+  // Check if table data is valid
+  if (!table || !table.headers || !table.rows) {
+    console.error("[TableAction] Invalid table data:", { table, data });
+    await slack.chat.postEphemeral({
+      channel: payload.channel?.id || storedChannelId,
+      user: user.id,
+      text: "❌ Invalid table data. Please try creating a new table.",
+    });
+    return;
+  }
+
   // Only allow the original creator to edit (skip check if no userId in data)
   if (originalUserId && user.id !== originalUserId) {
     await slack.chat.postEphemeral({
