@@ -264,13 +264,22 @@ function createTableModalView(existingTable: TableData | null, isEdit: boolean):
 export async function openTableModal(
   slack: WebClient,
   triggerId: string,
-  existingTable: TableData | null
+  existingTable: TableData | null,
+  channelId?: string,
+  userId?: string
 ): Promise<void> {
   const isEdit = existingTable !== null;
 
+  const view = createTableModalView(existingTable, isEdit);
+
+  // Add channel and user info to private_metadata if provided
+  if (channelId || userId) {
+    view.private_metadata = JSON.stringify({ channelId, userId });
+  }
+
   await slack.views.open({
     trigger_id: triggerId,
-    view: createTableModalView(existingTable, isEdit) as any,
+    view: view as any,
   });
 }
 
@@ -363,10 +372,24 @@ export async function handleModalSubmission(
   const table: TableData = { headers, rows };
 
   // Get channel from metadata if available, otherwise use user's DM
-  const channelId = view.private_metadata || user.id;
+  let channelId = user.id; // Default to DM
+  let originalUserId = user.id;
+
+  if (view.private_metadata) {
+    try {
+      const metadata = JSON.parse(view.private_metadata);
+      channelId = metadata.channelId || user.id;
+      originalUserId = metadata.userId || user.id;
+      console.log("[Modal Submission] Using channel from metadata:", channelId);
+    } catch (e) {
+      // If metadata is not JSON, assume it's a channel ID (for backward compatibility)
+      channelId = view.private_metadata;
+      console.log("[Modal Submission] Using channel from legacy metadata:", channelId);
+    }
+  }
 
   // Post the table
-  await postTable(slack, channelId, table, user.id);
+  await postTable(slack, channelId, table, originalUserId);
 }
 
 /**
@@ -795,8 +818,8 @@ export async function handleTableAction(
           ...table,
           rows: [...table.rows, Array(table.headers.length).fill("")],
         };
-        console.log("[TableAction] Opening modal with new row");
-        await openTableModal(slack, trigger_id, tableWithRow);
+        console.log("[TableAction] Opening modal with new row, channelId:", storedChannelId);
+        await openTableModal(slack, trigger_id, tableWithRow, storedChannelId, originalUserId);
         console.log("[TableAction] Modal opened successfully");
       } catch (error) {
         console.error("[TableAction] Error adding row:", error);
@@ -816,8 +839,8 @@ export async function handleTableAction(
           headers: [...table.headers, `Col ${table.headers.length + 1}`],
           rows: table.rows.map((row) => [...row, ""]),
         };
-        console.log("[TableAction] Opening modal with new column");
-        await openTableModal(slack, trigger_id, tableWithColumn);
+        console.log("[TableAction] Opening modal with new column, channelId:", storedChannelId);
+        await openTableModal(slack, trigger_id, tableWithColumn, storedChannelId, originalUserId);
         console.log("[TableAction] Modal opened successfully");
       } catch (error) {
         console.error("[TableAction] Error adding column:", error);
