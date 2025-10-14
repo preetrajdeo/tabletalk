@@ -193,6 +193,42 @@ function createTableModalView(existingTable: TableData | null, isEdit: boolean):
     type: "divider",
   });
 
+  // Add action buttons for adding rows and columns (only in edit mode)
+  if (isEdit) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*Need more space?*",
+      },
+    });
+    blocks.push({
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "➕ Add Row",
+          },
+          action_id: "modal_add_row",
+          style: "primary",
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "➕ Add Column",
+          },
+          action_id: "modal_add_column",
+        },
+      ],
+    });
+    blocks.push({
+      type: "divider",
+    });
+  }
+
   // Add input fields for each row with grid-like visual structure
   table.rows.forEach((row, rowIndex) => {
     blocks.push({
@@ -873,6 +909,127 @@ export async function handleTableAction(
           user: user.id,
           text: "❌ Failed to post table to channel. Please try again.",
         });
+      }
+      break;
+
+    case "modal_add_row":
+      console.log("[TableAction] Adding row from modal");
+      try {
+        // Extract current form data from the modal
+        const view = payload.view;
+        const values = view.state.values;
+
+        // Extract headers
+        const headers: string[] = [];
+        let colIdx = 0;
+        while (values[`header_${colIdx}`]) {
+          headers.push(values[`header_${colIdx}`][`header_input_${colIdx}`]?.value || "");
+          colIdx++;
+        }
+
+        // Extract rows
+        const rows: string[][] = [];
+        let rowIdx = 0;
+        while (values[`row_${rowIdx}_col_0`]) {
+          const row: string[] = [];
+          for (let col = 0; col < headers.length; col++) {
+            row.push(values[`row_${rowIdx}_col_${col}`]?.[`cell_input_${rowIdx}_${col}`]?.value || "");
+          }
+          rows.push(row);
+          rowIdx++;
+        }
+
+        // Add new empty row
+        rows.push(Array(headers.length).fill(""));
+
+        const updatedTable = { headers, rows };
+
+        // Extract metadata
+        let channelId, userId;
+        if (view.private_metadata) {
+          const metadata = JSON.parse(view.private_metadata);
+          channelId = metadata.channelId;
+          userId = metadata.userId;
+        }
+
+        // Update the modal with the new row
+        await slack.views.update({
+          view_id: view.id,
+          view: createTableModalView(updatedTable, true) as any,
+        });
+
+        // Restore metadata if it existed
+        if (channelId || userId) {
+          const updatedView: any = await slack.views.update({
+            view_id: view.id,
+            view: {
+              ...createTableModalView(updatedTable, true),
+              private_metadata: JSON.stringify({ channelId, userId })
+            } as any,
+          });
+        }
+
+        console.log("[TableAction] Row added to modal successfully");
+      } catch (error) {
+        console.error("[TableAction] Error adding row in modal:", error);
+      }
+      break;
+
+    case "modal_add_column":
+      console.log("[TableAction] Adding column from modal");
+      try {
+        // Extract current form data from the modal
+        const view = payload.view;
+        const values = view.state.values;
+
+        // Extract headers
+        const headers: string[] = [];
+        let colIdx = 0;
+        while (values[`header_${colIdx}`]) {
+          headers.push(values[`header_${colIdx}`][`header_input_${colIdx}`]?.value || "");
+          colIdx++;
+        }
+
+        // Add new column header
+        headers.push(`Col ${headers.length + 1}`);
+
+        // Extract rows and add empty cell to each
+        const rows: string[][] = [];
+        let rowIdx = 0;
+        while (values[`row_${rowIdx}_col_0`]) {
+          const row: string[] = [];
+          for (let col = 0; col < headers.length - 1; col++) {
+            row.push(values[`row_${rowIdx}_col_${col}`]?.[`cell_input_${rowIdx}_${col}`]?.value || "");
+          }
+          row.push(""); // Add empty cell for new column
+          rows.push(row);
+          rowIdx++;
+        }
+
+        const updatedTable = { headers, rows };
+
+        // Extract metadata
+        let channelId, userId;
+        if (view.private_metadata) {
+          const metadata = JSON.parse(view.private_metadata);
+          channelId = metadata.channelId;
+          userId = metadata.userId;
+        }
+
+        // Update the modal with the new column
+        const newView = createTableModalView(updatedTable, true);
+        if (channelId || userId) {
+          newView.private_metadata = JSON.stringify({ channelId, userId });
+        }
+
+        await slack.views.update({
+          view_id: view.id,
+          view: newView as any,
+        });
+
+        console.log("[TableAction] Column added to modal successfully");
+      } catch (error) {
+        console.error("[TableAction] Error adding column in modal:", error);
       }
       break;
   }
