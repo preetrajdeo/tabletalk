@@ -951,22 +951,16 @@ export async function handleTableAction(
           userId = metadata.userId;
         }
 
-        // Update the modal with the new row
+        // Update the modal with the new row and preserve metadata
+        const newView = createTableModalView(updatedTable, true);
+        if (channelId || userId) {
+          newView.private_metadata = JSON.stringify({ channelId, userId });
+        }
+
         await slack.views.update({
           view_id: view.id,
-          view: createTableModalView(updatedTable, true) as any,
+          view: newView as any,
         });
-
-        // Restore metadata if it existed
-        if (channelId || userId) {
-          const updatedView: any = await slack.views.update({
-            view_id: view.id,
-            view: {
-              ...createTableModalView(updatedTable, true),
-              private_metadata: JSON.stringify({ channelId, userId })
-            } as any,
-          });
-        }
 
         console.log("[TableAction] Row added to modal successfully");
       } catch (error) {
