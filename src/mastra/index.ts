@@ -7,8 +7,14 @@ import { MCPServer } from "@mastra/mcp";
 import { NonRetriableError } from "inngest";
 import { z } from "zod";
 
-import { sharedPostgresStorage } from "./storage";
+// import { sharedPostgresStorage } from "./storage";
 import { inngest, inngestServe } from "./inngest";
+import {
+  handleTableCommand,
+  handleModalSubmission,
+  handleTableAction
+} from "./slackTableCommands";
+import { getSlackClient } from "./slackClient";
 
 class ProductionPinoLogger extends MastraLogger {
   protected logger: pino.Logger;
@@ -52,7 +58,7 @@ class ProductionPinoLogger extends MastraLogger {
 }
 
 export const mastra = new Mastra({
-  storage: sharedPostgresStorage,
+  // storage: sharedPostgresStorage,  // Disabled for testing without PostgreSQL
   agents: {},
   workflows: {},
   mcpServers: {
@@ -78,7 +84,7 @@ export const mastra = new Mastra({
   },
   server: {
     host: "0.0.0.0",
-    port: 5000,
+    port: 5001,
     middleware: [
       async (c, next) => {
         const mastra = c.get("mastra");
@@ -121,6 +127,86 @@ export const mastra = new Mastra({
         //    - Handle workflow state persistence and real-time updates
         // 3. Establishing a publish-subscribe system for real-time monitoring
         //    through the workflow:${workflowId}:${runId} channel
+      },
+      // Slack slash command endpoint for /table command
+      {
+        path: "/slack/commands",
+        method: "POST",
+        createHandler: async ({ mastra }) => {
+          return async (c) => {
+            try {
+              const body = await c.req.parseBody();
+              const logger = mastra.getLogger();
+
+              logger?.info("[Slack Command]", { command: body.command });
+
+              if (body.command === "/table") {
+                const slack = await getSlackClient();
+                await handleTableCommand(body, slack);
+
+                // Respond immediately to Slack
+                return c.text("", 200);
+              }
+
+              if (body.command === "/table-edit") {
+                const slack = await getSlackClient();
+                await handleTableCommand(body, slack);
+
+                // Respond immediately to Slack
+                return c.text("", 200);
+              }
+
+              return c.json({ error: "Unknown command" }, 400);
+            } catch (error) {
+              const errorDetails = error instanceof Error
+                ? { message: error.message, stack: error.stack, name: error.name }
+                : { error: String(error) };
+              mastra.getLogger()?.error("[Slack Command Error]", errorDetails);
+              console.error("[Slack Command Full Error]:", error);
+              return c.json({ error: "Internal error" }, 500);
+            }
+          };
+        },
+      },
+      // Slack interactive components (modals, buttons)
+      {
+        path: "/slack/interactions",
+        method: "POST",
+        createHandler: async ({ mastra }) => {
+          return async (c) => {
+            try {
+              const body = await c.req.parseBody();
+              const payload = JSON.parse(body.payload as string);
+              const logger = mastra.getLogger();
+
+              logger?.info("[Slack Interaction]", {
+                type: payload.type,
+                callback_id: payload.view?.callback_id,
+              });
+
+              const slack = await getSlackClient();
+
+              // Handle different interaction types
+              if (payload.type === "view_submission") {
+                await handleModalSubmission(payload, slack);
+                // Return response_action: "clear" to close all modals
+                return c.json({ response_action: "clear" });
+              } else if (payload.type === "block_actions") {
+                await handleTableAction(payload, slack);
+                return c.json({});
+              }
+
+              return c.json({ error: "Unknown interaction type" }, 400);
+            } catch (error) {
+              const errorDetails = error instanceof Error
+                ? { message: error.message, stack: error.stack, name: error.name }
+                : { error: String(error) };
+              mastra.getLogger()?.error("[Slack Interaction Error]", errorDetails);
+              console.error("[Slack Interaction Full Error]:", error);
+              return c.json({ error: "Internal error" }, 500);
+            }
+          };
+        },
       },
     ],
   },
