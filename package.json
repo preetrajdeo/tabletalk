@@ -6,6 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "mastra dev",
     "build": "mastra build",
+    "start": "npm run build && cd .mastra/output && NODE_ENV=production node index.mjs",
     "check": "tsc",
     "check:format": "prettier --check '**/*.ts'",
     "format": "prettier --write '**/*.ts'"
