@@ -610,6 +610,13 @@ export async function postTable(
   table: TableData,
   userId: string
 ): Promise<void> {
+  console.log("[postTable] Called with:", { channelId, userId, hasTable: !!table });
+
+  if (!channelId) {
+    console.error("[postTable] ERROR: channelId is missing!");
+    throw new Error("Cannot post table: channelId is required");
+  }
+
   const markdown = formatTableAsMarkdown(table);
 
   const message = {
@@ -658,7 +665,9 @@ export async function postTable(
     ],
   };
 
-  await slack.chat.postMessage(message as any);
+  console.log("[postTable] About to call slack.chat.postMessage");
+  const result = await slack.chat.postMessage(message as any);
+  console.log("[postTable] Message posted successfully:", { ts: result.ts, channel: result.channel });
 }
 
 /**
