@@ -36,8 +36,8 @@ export async function handleTableCommand(
   }
 
   // Otherwise, open the modal for interactive input
-  console.log("[TableCommand] Opening modal");
-  await openTableModal(slack, trigger_id, null);
+  console.log("[TableCommand] Opening modal for channel:", channel_id);
+  await openTableModal(slack, trigger_id, null, channel_id, user_id);
 }
 
 /**
