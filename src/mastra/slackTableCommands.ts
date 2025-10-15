@@ -825,11 +825,19 @@ export async function handleTableAction(
     case "edit_manually":
       console.log("[TableAction] Opening manual edit modal");
       try {
+        const channelId = storedChannelId || message?.channel;
+        const modalView = createTableModalView(table, true);
+
+        // Add metadata with channel and user info
+        if (channelId || originalUserId) {
+          modalView.private_metadata = JSON.stringify({ channelId, userId: originalUserId });
+        }
+
         await slack.views.push({
           trigger_id: trigger_id,
-          view: await createTableModalView(table, true),
+          view: modalView as any,
         });
-        console.log("[TableAction] Manual edit modal pushed");
+        console.log("[TableAction] Manual edit modal pushed with metadata");
       } catch (error) {
         console.error("[TableAction] Error opening manual edit modal:", error);
         throw error;
