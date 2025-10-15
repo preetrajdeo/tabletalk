@@ -377,30 +377,21 @@ export async function handleModalSubmission(
   const rows: string[][] = [];
   let rowIndex = 0;
   while (true) {
-    const row: string[] = [];
-    let hasAnyValue = false;
-
-    for (let col = 0; col < headers.length; col++) {
-      const blockId = `row_${rowIndex}_col_${col}`;
-      const actionId = `cell_input_${rowIndex}_${col}`;
-      const cellValue = values[blockId]?.[actionId]?.value || "";
-
-      row.push(cellValue.trim());
-      if (cellValue.trim()) {
-        hasAnyValue = true;
-      }
-    }
-
     // Stop if this row doesn't exist in the form
     if (!values[`row_${rowIndex}_col_0`]) {
       break;
     }
 
-    // Only add rows that have at least one value
-    if (hasAnyValue) {
-      rows.push(row);
+    const row: string[] = [];
+    for (let col = 0; col < headers.length; col++) {
+      const blockId = `row_${rowIndex}_col_${col}`;
+      const actionId = `cell_input_${rowIndex}_${col}`;
+      const cellValue = values[blockId]?.[actionId]?.value || "";
+      row.push(cellValue.trim());
     }
 
+    // Include all rows, even if empty
+    rows.push(row);
     rowIndex++;
   }
 
