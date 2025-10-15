@@ -712,15 +712,18 @@ export async function handleTableAction(
     channelId: storedChannelId
   });
 
-  // Check if table data is valid
-  if (!table || !table.headers || !table.rows) {
-    console.error("[TableAction] Invalid table data:", { table, data });
-    await slack.chat.postEphemeral({
-      channel: payload.channel?.id || storedChannelId,
-      user: user.id,
-      text: "❌ Invalid table data. Please try creating a new table.",
-    });
-    return;
+  // Skip validation for modal button actions - they extract data from the modal state instead
+  if (action_id !== "modal_add_row" && action_id !== "modal_add_column") {
+    // Check if table data is valid
+    if (!table || !table.headers || !table.rows) {
+      console.error("[TableAction] Invalid table data:", { table, data });
+      await slack.chat.postEphemeral({
+        channel: payload.channel?.id || storedChannelId,
+        user: user.id,
+        text: "❌ Invalid table data. Please try creating a new table.",
+      });
+      return;
+    }
   }
 
   // Only allow the original creator to edit (skip check if no userId in data)
