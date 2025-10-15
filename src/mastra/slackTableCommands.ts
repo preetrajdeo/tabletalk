@@ -934,6 +934,9 @@ export async function handleTableAction(
         const view = payload.view;
         const values = view.state.values;
 
+        console.log("[modal_add_row] view.id:", view.id);
+        console.log("[modal_add_row] view.private_metadata:", view.private_metadata);
+
         // Extract headers
         const headers: string[] = [];
         let colIdx = 0;
@@ -941,6 +944,8 @@ export async function handleTableAction(
           headers.push(values[`header_${colIdx}`][`header_input_${colIdx}`]?.value || "");
           colIdx++;
         }
+
+        console.log("[modal_add_row] Extracted headers:", headers);
 
         // Extract rows
         const rows: string[][] = [];
@@ -954,8 +959,12 @@ export async function handleTableAction(
           rowIdx++;
         }
 
+        console.log("[modal_add_row] Extracted rows (before adding new):", rows.length);
+
         // Add new empty row
         rows.push(Array(headers.length).fill(""));
+
+        console.log("[modal_add_row] Total rows (after adding new):", rows.length);
 
         const updatedTable = { headers, rows };
 
@@ -967,18 +976,22 @@ export async function handleTableAction(
           userId = metadata.userId;
         }
 
+        console.log("[modal_add_row] Metadata:", { channelId, userId });
+
         // Update the modal with the new row and preserve metadata
         const newView = createTableModalView(updatedTable, true);
         if (channelId || userId) {
           newView.private_metadata = JSON.stringify({ channelId, userId });
         }
 
-        await slack.views.update({
+        console.log("[modal_add_row] About to call slack.views.update with", rows.length, "rows");
+
+        const updateResult = await slack.views.update({
           view_id: view.id,
           view: newView as any,
         });
 
-        console.log("[TableAction] Row added to modal successfully");
+        console.log("[TableAction] Row added to modal successfully, update result:", updateResult.ok);
       } catch (error) {
         console.error("[TableAction] Error adding row in modal:", error);
       }
