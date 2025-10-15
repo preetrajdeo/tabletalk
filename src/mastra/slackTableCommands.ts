@@ -18,9 +18,10 @@ export async function handleTableCommand(
   payload: any,
   slack: WebClient
 ): Promise<void> {
-  const { trigger_id, text, user_id, channel_id, response_url } = payload;
+  const { trigger_id, text, user_id, channel_id, response_url, channel_name } = payload;
 
-  console.log("[TableCommand] Received:", { text, user_id, channel_id, response_url });
+  console.log("[TableCommand] Received:", { text, user_id, channel_id, channel_name, response_url });
+  console.log("[TableCommand] Full payload:", JSON.stringify(payload, null, 2));
 
   // If user provided text, use AI to parse it
   if (text && text.trim()) {
@@ -401,9 +402,13 @@ export async function handleModalSubmission(
   let channelId = user.id; // Default to DM
   let originalUserId = user.id;
 
+  console.log("[Modal Submission] Initial channelId (user.id):", channelId);
+  console.log("[Modal Submission] view.private_metadata:", view.private_metadata);
+
   if (view.private_metadata) {
     try {
       const metadata = JSON.parse(view.private_metadata);
+      console.log("[Modal Submission] Parsed metadata:", metadata);
       channelId = metadata.channelId || user.id;
       originalUserId = metadata.userId || user.id;
       console.log("[Modal Submission] Using channel from metadata:", channelId);
@@ -412,9 +417,12 @@ export async function handleModalSubmission(
       channelId = view.private_metadata;
       console.log("[Modal Submission] Using channel from legacy metadata:", channelId);
     }
+  } else {
+    console.log("[Modal Submission] No private_metadata found, using user.id as channelId");
   }
 
-  console.log("[Modal Submission] About to post table to channel:", channelId);
+  console.log("[Modal Submission] Final channelId before posting:", channelId);
+  console.log("[Modal Submission] Final userId:", originalUserId);
 
   // Post the table
   try {
