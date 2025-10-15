@@ -627,8 +627,15 @@ export async function postTable(
 
   const markdown = formatTableAsMarkdown(table);
 
+  // For DM channels, try posting to the user ID instead of the channel ID
+  let targetChannel = channelId;
+  if (channelId.startsWith('D') && userId) {
+    console.log("[postTable] DM channel detected, will try user ID:", userId);
+    targetChannel = userId;
+  }
+
   const message = {
-    channel: channelId,
+    channel: targetChannel,
     text: "Table created",
     blocks: [
       {
