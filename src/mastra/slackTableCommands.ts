@@ -414,8 +414,16 @@ export async function handleModalSubmission(
     }
   }
 
+  console.log("[Modal Submission] About to post table to channel:", channelId);
+
   // Post the table
-  await postTable(slack, channelId, table, originalUserId);
+  try {
+    await postTable(slack, channelId, table, originalUserId);
+    console.log("[Modal Submission] Table posted successfully");
+  } catch (error) {
+    console.error("[Modal Submission] Error posting table:", error);
+    throw error; // Re-throw so the modal doesn't close on error
+  }
 }
 
 /**
