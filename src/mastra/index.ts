@@ -192,8 +192,14 @@ export const mastra = new Mastra({
                 // Return response_action: "clear" to close all modals
                 return c.json({ response_action: "clear" });
               } else if (payload.type === "block_actions") {
+                // Check if this is a modal button action (has payload.view)
+                const isModalAction = !!payload.view;
+
                 await handleTableAction(payload, slack);
-                return c.json({});
+
+                // For modal actions, we must return an empty 200 response immediately
+                // The actual modal update happens via slack.views.update() in handleTableAction
+                return c.text("", 200);
               }
 
               return c.json({ error: "Unknown interaction type" }, 400);
