@@ -24,9 +24,10 @@ export async function parseTableFromNaturalLanguage(
 User's request: "${description}"
 
 Your task:
-1. Identify the column headers from the description
-2. Extract any row data mentioned
-3. If no specific rows are mentioned, create 3 empty example rows with placeholder data that matches the context
+1. If the user specifies dimensions (like "5 rows and 2 columns" or "3x4 table"), create a table with that many rows and columns using generic headers like "Column 1", "Column 2", etc.
+2. Otherwise, identify meaningful column headers from the description
+3. Extract any row data mentioned, or create appropriate example rows
+4. If no specific rows are mentioned, create 3 empty example rows with placeholder data that matches the context
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -38,6 +39,12 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
 }
 
 Examples:
+
+Input: "5 rows and 2 columns"
+Output: {"headers":["Column 1","Column 2"],"rows":[["",""],["",""],["",""],["",""],["",""]]}
+
+Input: "3x4 table"
+Output: {"headers":["Column 1","Column 2","Column 3","Column 4"],"rows":[["","","",""],["","","",""],["","","",""]]}
 
 Input: "project tracker with name, status, owner"
 Output: {"headers":["Name","Status","Owner"],"rows":[["Project A","In Progress","John"],["Project B","Not Started","Sarah"],["Project C","Complete","Mike"]]}
