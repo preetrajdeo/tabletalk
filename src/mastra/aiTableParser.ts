@@ -14,7 +14,8 @@ export async function parseTableFromNaturalLanguage(
   description: string
 ): Promise<TableData> {
   // Check if OpenAI key is configured
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) {
     console.error("OPENAI_API_KEY not set, using fallback parser");
     return fallbackParser(description);
   }
