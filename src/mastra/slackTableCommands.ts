@@ -625,26 +625,10 @@ export async function postTable(
     throw new Error("Cannot post table: channelId is required");
   }
 
-  // For DM channels (start with 'D'), use conversations.open first to ensure the DM exists
-  let targetChannel = channelId;
-  if (channelId.startsWith('D')) {
-    console.log("[postTable] DM detected, opening conversation with user:", userId);
-    try {
-      const result = await slack.conversations.open({
-        users: userId,
-      });
-      targetChannel = result.channel?.id || channelId;
-      console.log("[postTable] DM conversation opened, channel:", targetChannel);
-    } catch (error) {
-      console.error("[postTable] Error opening DM conversation:", error);
-      // Fall back to using the original channelId
-    }
-  }
-
   const markdown = formatTableAsMarkdown(table);
 
   const message = {
-    channel: targetChannel,
+    channel: channelId,
     text: "Table created",
     blocks: [
       {
