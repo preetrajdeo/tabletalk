@@ -992,16 +992,28 @@ export async function handleTableAction(
           newView.private_metadata = JSON.stringify({ channelId, userId });
         }
 
-        console.log("[modal_add_row] About to call slack.views.update with", rows.length, "rows");
+        console.log("[modal_add_row] About to update modal with", rows.length, "rows");
 
-        const updateResult = await slack.views.update({
-          view_id: view.id,
-          view: newView as any,
-        });
+        // Update the modal with the new row
+        try {
+          const result = await slack.views.update({
+            view_id: view.id,
+            view: newView as any,
+          });
 
-        console.log("[TableAction] Row added to modal successfully, update result:", updateResult.ok);
+          console.log("[TableAction] Row added to modal successfully, result:", JSON.stringify(result));
+        } catch (updateError) {
+          console.error("[TableAction] Error updating modal view:", updateError);
+          throw updateError;
+        }
       } catch (error) {
         console.error("[TableAction] Error adding row in modal:", error);
+        // Log the full error details
+        if (error instanceof Error) {
+          console.error("[TableAction] Error name:", error.name);
+          console.error("[TableAction] Error message:", error.message);
+          console.error("[TableAction] Error stack:", error.stack);
+        }
       }
       break;
 
