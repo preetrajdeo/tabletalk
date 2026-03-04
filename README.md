@@ -1,4 +1,69 @@
-# TableTalk
+# TableTalk — AI-Powered Tables for Slack
+
+> Slack is where decisions happen. But structured data lives elsewhere.
+> TableTalk brings tables into the conversation.
+
+## The Problem
+
+Slack is where teams align — but the moment a discussion requires structured data,
+people paste screenshots from Google Sheets or format messy text blocks. The
+context breaks. The meeting drags. The table gets updated in a separate doc nobody
+checks.
+
+The pain is sharpest for PMs and ops teams who live in Slack: sprint planning,
+vendor comparisons, roadmap prioritization. All of it requires tables. None of it
+belongs in a spreadsheet tab.
+
+## The Solution
+
+A `/table` slash command that generates and edits formatted tables using plain
+English — directly in Slack, without leaving the conversation.
+
+Users describe what they want ("Compare 5 cloud providers with pricing and SLA"),
+preview the result privately, and post when ready. They can edit with natural
+language ("Add a column for compliance certifications") in the same flow.
+
+## Product Decisions & Tradeoffs
+
+**Ephemeral preview before posting** — I chose to show tables privately before
+they go public. This added implementation complexity but was the right call:
+users won't trust a tool that posts wrong output to a whole channel. Trust
+requires a preview step.
+
+**GPT-4o-mini over GPT-4o** — Table generation doesn't require frontier
+reasoning. 4o-mini generates accurate table structures at ~100x lower cost.
+The tradeoff was occasional misinterpretation of ambiguous prompts, which I
+mitigated with a fallback to manual editing mode.
+
+**Mastra as the agent framework** — Chose Mastra over a custom LangChain setup
+for faster iteration. Tradeoff: less control over the agent loop, but shipping
+faster mattered more at this stage than perfect architecture.
+
+**No persistent storage** — Tables are ephemeral by design. I deliberately chose
+not to store user inputs, which simplified compliance and privacy. A future
+version could offer opt-in logging for teams that want table history.
+
+## What I Learned
+
+Parsing user intent is the hardest part — not generating the table. "Create a
+table for my team" is ambiguous in ways that only surface when real users type
+it. I learned to prompt for structured output with explicit fallback handling,
+and to design the manual editing flow as the primary recovery path, not an
+afterthought.
+
+The cost analysis also shaped product thinking: at ~$0.0001 per table operation
+and $5/month hosting, the unit economics work at scale. Understanding the cost
+floor informed decisions about how aggressively to optimize the AI calls.
+
+## Status
+
+Live in production · tabletalk-production.up.railway.app · Pending Slack App Directory review
+
+**Stack**: Node.js · Mastra · OpenAI GPT-4o-mini · Slack Web API · Railway
+
+---
+
+## Technical Documentation
 
 **AI-Powered Table Creation for Slack**
 
@@ -217,10 +282,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [ ] Table versioning/history
 - [ ] Advanced formatting options
 - [ ] Team analytics dashboard
-
-## Status
-
-✅ **Production Ready** - Live at https://tabletalk-production.up.railway.app
 
 ---
 
