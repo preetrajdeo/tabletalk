@@ -15,6 +15,7 @@ import {
   handleTableAction
 } from "./slackTableCommands";
 import { getSlackClient } from "./slackClient";
+import { initTokenStore, saveInstallation } from "./tokenStore";
 
 class ProductionPinoLogger extends MastraLogger {
   protected logger: pino.Logger;
@@ -78,6 +79,7 @@ export const mastra = new Mastra({
       "inngest/hono",
       "hono",
       "hono/streaming",
+      "pg",
     ],
     // sourcemaps are good for debugging.
     sourcemap: true,
@@ -128,6 +130,106 @@ export const mastra = new Mastra({
         // 3. Establishing a publish-subscribe system for real-time monitoring
         //    through the workflow:${workflowId}:${runId} channel
       },
+      // Redirect to Slack OAuth authorization page
+      {
+        path: "/slack/install",
+        method: "GET",
+        createHandler: async () => {
+          return async (c) => {
+            const clientId = process.env.SLACK_CLIENT_ID;
+            const appUrl = process.env.APP_URL ?? "";
+            const redirectUri = `${appUrl}/slack/oauth/callback`;
+            const scopes = "chat:write,chat:write.public,commands,users:read";
+
+            if (!clientId) {
+              return c.text("SLACK_CLIENT_ID environment variable not set.", 500);
+            }
+
+            const url =
+              `https://slack.com/oauth/v2/authorize` +
+              `?client_id=${encodeURIComponent(clientId)}` +
+              `&scope=${encodeURIComponent(scopes)}` +
+              `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+            return c.redirect(url, 302);
+          };
+        },
+      },
+      // OAuth callback — Slack redirects here after a workspace installs the app
+      {
+        path: "/slack/oauth/callback",
+        method: "GET",
+        createHandler: async ({ mastra }) => {
+          return async (c) => {
+            const logger = mastra.getLogger();
+            const code = c.req.query("code");
+            const error = c.req.query("error");
+
+            if (error) {
+              logger?.warn("[OAuth Callback] User denied installation", { error });
+              return c.html(
+                `<h2>Installation cancelled</h2><p>You can close this tab.</p>`
+              );
+            }
+
+            if (!code) {
+              return c.text("Missing code parameter.", 400);
+            }
+
+            const clientId = process.env.SLACK_CLIENT_ID;
+            const clientSecret = process.env.SLACK_CLIENT_SECRET;
+            const appUrl = process.env.APP_URL ?? "";
+            const redirectUri = `${appUrl}/slack/oauth/callback`;
+
+            if (!clientId || !clientSecret) {
+              logger?.error("[OAuth Callback] Missing SLACK_CLIENT_ID or SLACK_CLIENT_SECRET");
+              return c.text("Server misconfiguration: missing Slack credentials.", 500);
+            }
+
+            // Exchange the temporary code for a permanent bot token
+            const params = new URLSearchParams({
+              code,
+              client_id: clientId,
+              client_secret: clientSecret,
+              redirect_uri: redirectUri,
+            });
+
+            const response = await fetch(
+              `https://slack.com/api/oauth.v2.access?${params.toString()}`,
+              { method: "GET" }
+            );
+
+            const data = (await response.json()) as any;
+
+            if (!data.ok) {
+              logger?.error("[OAuth Callback] Token exchange failed", { error: data.error });
+              return c.html(
+                `<h2>Installation failed</h2><p>${data.error}</p><p>Please try again.</p>`
+              );
+            }
+
+            const teamId = data.team?.id;
+            const teamName = data.team?.name;
+            const botToken = data.access_token;
+            const botUserId = data.bot_user_id;
+
+            await saveInstallation(teamId, botToken, botUserId, teamName);
+            logger?.info("[OAuth Callback] Installation saved", { teamId, teamName });
+
+            return c.html(`
+              <!DOCTYPE html>
+              <html>
+                <head><title>TableTalk Installed</title></head>
+                <body style="font-family:sans-serif;text-align:center;padding:60px;">
+                  <h1>🎉 TableTalk is installed!</h1>
+                  <p>TableTalk has been added to <strong>${teamName}</strong>.</p>
+                  <p>Head back to Slack and try <code>/table</code> in any channel.</p>
+                </body>
+              </html>
+            `);
+          };
+        },
+      },
       // Slack slash command endpoint for /table command
       {
         path: "/slack/commands",
@@ -140,8 +242,10 @@ export const mastra = new Mastra({
 
               logger?.info("[Slack Command]", { command: body.command });
 
+              const teamId = body.team_id as string | undefined;
+
               if (body.command === "/table") {
-                const slack = await getSlackClient();
+                const slack = await getSlackClient(teamId);
                 await handleTableCommand(body, slack);
 
                 // Respond immediately to Slack
@@ -149,7 +253,7 @@ export const mastra = new Mastra({
               }
 
               if (body.command === "/table-edit") {
-                const slack = await getSlackClient();
+                const slack = await getSlackClient(teamId);
                 await handleTableCommand(body, slack);
 
                 // Respond immediately to Slack
@@ -184,7 +288,8 @@ export const mastra = new Mastra({
                 callback_id: payload.view?.callback_id,
               });
 
-              const slack = await getSlackClient();
+              const teamId = payload.team?.id as string | undefined;
+              const slack = await getSlackClient(teamId);
 
               // Handle different interaction types
               if (payload.type === "view_submission") {
@@ -227,6 +332,11 @@ export const mastra = new Mastra({
           level: "info",
         }),
 });
+
+// Initialize the token store (creates the DB table if it doesn't exist yet)
+initTokenStore().catch((err) =>
+  console.error("[TokenStore] Failed to initialize:", err)
+);
 
 /*  Sanity check 1: Throw an error if there are more than 1 workflows.  */
 // !!!!!! Do not remove this check. !!!!!!

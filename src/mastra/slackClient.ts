@@ -1,30 +1,32 @@
 /**
- * Simple Slack client for local development
- * Uses bot token from environment variable
+ * Slack client factory.
+ * Resolves the bot token for a given workspace (team_id) from Postgres,
+ * falling back to the static SLACK_BOT_TOKEN env var for legacy / single-workspace use.
  */
 
 import { WebClient } from "@slack/web-api";
+import { getTokenForTeam } from "./tokenStore";
 
-export async function getSlackClient(): Promise<WebClient> {
-  const token = process.env.SLACK_BOT_TOKEN;
+export async function getSlackClient(teamId?: string): Promise<WebClient> {
+  let token: string | null | undefined;
+
+  if (teamId) {
+    token = await getTokenForTeam(teamId);
+  }
+
+  // Fallback: static env var (covers the original single-workspace install
+  // and local development where DATABASE_URL may not be set)
+  if (!token) {
+    token = process.env.SLACK_BOT_TOKEN ?? null;
+  }
 
   if (!token) {
     throw new Error(
-      "SLACK_BOT_TOKEN environment variable not set. " +
-      "Get your bot token from https://api.slack.com/apps → Your App → OAuth & Permissions → Bot User OAuth Token"
+      teamId
+        ? `No bot token found for team ${teamId}. The workspace may need to reinstall the app at ${process.env.APP_URL ?? ""}/slack/install`
+        : "SLACK_BOT_TOKEN environment variable not set."
     );
   }
 
-  const slack = new WebClient(token);
-
-  // Test the connection
-  try {
-    await slack.auth.test();
-  } catch (error) {
-    throw new Error(
-      `Failed to connect to Slack. Check that your SLACK_BOT_TOKEN is valid. Error: ${error}`
-    );
-  }
-
-  return slack;
+  return new WebClient(token);
 }
