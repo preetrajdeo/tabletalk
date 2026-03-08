@@ -23,7 +23,7 @@ export async function getSlackClient(teamId?: string): Promise<WebClient> {
   if (!token) {
     throw new Error(
       teamId
-        ? `No bot token found for team ${teamId}. The workspace may need to reinstall the app at ${process.env.APP_URL ?? ""}/slack/install`
+        ? `No bot token found for team ${teamId}. The workspace may need to reinstall the app at https://tabletalk-production.up.railway.app/slack/install`
         : "SLACK_BOT_TOKEN environment variable not set."
     );
   }

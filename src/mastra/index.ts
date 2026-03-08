@@ -137,8 +137,7 @@ export const mastra = new Mastra({
         createHandler: async () => {
           return async (c) => {
             const clientId = process.env.SLACK_CLIENT_ID;
-            const appUrl = process.env.APP_URL ?? "";
-            const redirectUri = `${appUrl}/slack/oauth/callback`;
+            const redirectUri = "https://tabletalk-production.up.railway.app/slack/oauth/callback";
             const scopes = "chat:write,chat:write.public,commands,users:read";
 
             if (!clientId) {
@@ -178,8 +177,7 @@ export const mastra = new Mastra({
 
             const clientId = process.env.SLACK_CLIENT_ID;
             const clientSecret = process.env.SLACK_CLIENT_SECRET;
-            const appUrl = process.env.APP_URL ?? "";
-            const redirectUri = `${appUrl}/slack/oauth/callback`;
+            const redirectUri = "https://tabletalk-production.up.railway.app/slack/oauth/callback";
 
             if (!clientId || !clientSecret) {
               logger?.error("[OAuth Callback] Missing SLACK_CLIENT_ID or SLACK_CLIENT_SECRET");
