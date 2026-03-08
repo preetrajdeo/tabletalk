@@ -138,7 +138,7 @@ export const mastra = new Mastra({
           return async (c) => {
             const clientId = process.env.SLACK_CLIENT_ID;
             const redirectUri = "https://tabletalk-production.up.railway.app/slack/oauth/callback";
-            const scopes = "chat:write,chat:write.public,commands,users:read";
+            const scopes = "chat:write,chat:write.public,commands,users:read,im:write";
 
             if (!clientId) {
               return c.text("SLACK_CLIENT_ID environment variable not set.", 500);
