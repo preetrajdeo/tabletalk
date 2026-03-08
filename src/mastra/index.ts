@@ -211,8 +211,17 @@ export const mastra = new Mastra({
             const botToken = data.access_token;
             const botUserId = data.bot_user_id;
 
-            await saveInstallation(teamId, botToken, botUserId, teamName);
-            logger?.info("[OAuth Callback] Installation saved", { teamId, teamName });
+            try {
+              await saveInstallation(teamId, botToken, botUserId, teamName);
+              logger?.info("[OAuth Callback] Installation saved", { teamId, teamName });
+            } catch (dbError) {
+              const msg = dbError instanceof Error ? dbError.message : String(dbError);
+              logger?.error("[OAuth Callback] Failed to save installation", { teamId, error: msg });
+              console.error("[OAuth Callback] DB error:", dbError);
+              return c.html(
+                `<h2>Installation failed</h2><p>Could not save installation: ${msg}</p>`
+              );
+            }
 
             return c.html(`
               <!DOCTYPE html>
