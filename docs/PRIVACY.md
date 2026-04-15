@@ -61,6 +61,22 @@ You have the right to:
 - **Logs**: Error and access logs are retained for 30 days for debugging
 - **No User Data**: We do not retain your table content beyond processing
 
+## LLM-Specific Data Policies
+
+TableTalk uses OpenAI's API (GPT-4o-mini) to process user input. The following policies apply to data sent to OpenAI:
+
+### LLM Retention Settings
+
+User prompts (table descriptions and edit instructions) sent to OpenAI are **not retained by TableTalk** beyond the duration of a single request. OpenAI's data retention policies govern how OpenAI handles API inputs. As of the time of this writing, OpenAI does not use API data to train models by default (see [OpenAI API data usage policies](https://openai.com/policies/api-data-usage-policies)). TableTalk does not store, cache, or log the content of user prompts sent to OpenAI.
+
+### LLM Data Tenancy
+
+TableTalk operates as a single-tenant service — each request to OpenAI is made independently on behalf of the individual user initiating the request. User data is not pooled, aggregated, or shared across workspaces. No user's data is commingled with another user's data in LLM processing.
+
+### LLM Data Residency
+
+Data sent to OpenAI for processing is handled according to OpenAI's infrastructure policies. OpenAI primarily processes data in the United States. TableTalk does not have the ability to restrict or specify the geographic region in which OpenAI processes API requests. If your organization has strict data residency requirements, please review [OpenAI's privacy policy](https://openai.com/privacy) before using TableTalk. TableTalk itself is hosted on Railway.app infrastructure, which operates in the United States.
+
 ## Children's Privacy
 
 TableTalk is not intended for users under the age of 13. We do not knowingly collect information from children.

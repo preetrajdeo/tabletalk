@@ -59,6 +59,10 @@ Tables generate in seconds. No complex formatting, no spreadsheet uploads, no ha
 /table Product feature matrix with pricing tiers
 ```
 
+### ⚠️ AI Disclaimer
+
+TableTalk uses OpenAI's GPT-4o-mini to generate and edit tables. Like all AI systems, responses may occasionally be inaccurate, incomplete, or unexpected. Always review AI-generated content before sharing it with your team. TableTalk is not liable for decisions made based on AI-generated table data.
+
 ### 🔒 Privacy & Security
 
 - No permanent data storage

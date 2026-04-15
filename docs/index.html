@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TableTalk – AI-Powered Tables for Slack</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1a2e; background: #fff; }
+    a { color: #4a154b; }
+
+    header {
+      background: #4a154b;
+      color: #fff;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+    header nav a { color: #fff; text-decoration: none; margin-left: 24px; font-size: 0.9rem; opacity: 0.85; }
+    header nav a:hover { opacity: 1; }
+
+    .hero {
+      text-align: center;
+      padding: 80px 40px 60px;
+      background: linear-gradient(135deg, #4a154b 0%, #611f69 100%);
+      color: #fff;
+    }
+    .hero h2 { font-size: 2.8rem; font-weight: 800; line-height: 1.2; max-width: 700px; margin: 0 auto 20px; }
+    .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 560px; margin: 0 auto 36px; }
+    .hero .cta {
+      display: inline-block;
+      background: #fff;
+      color: #4a154b;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: opacity 0.2s;
+    }
+    .hero .cta:hover { opacity: 0.9; }
+
+    section { padding: 64px 40px; max-width: 960px; margin: 0 auto; }
+
+    h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 16px; color: #4a154b; }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
+      margin-top: 40px;
+    }
+    .feature-card {
+      border: 1px solid #e8e8e8;
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .feature-card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .feature-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.9rem; color: #555; line-height: 1.6; }
+
+    .how-it-works ol { margin-top: 20px; padding-left: 24px; }
+    .how-it-works li { margin-bottom: 12px; font-size: 1rem; line-height: 1.6; color: #333; }
+
+    .code-block {
+      background: #f4f4f4;
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.9rem;
+      margin-top: 20px;
+      color: #333;
+      line-height: 1.8;
+    }
+
+    .disclaimer {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.6;
+    }
+    .disclaimer strong { color: #333; }
+
+    .install {
+      text-align: center;
+      padding: 64px 40px;
+      background: #f9f5fa;
+    }
+    .install h3 { color: #4a154b; margin-bottom: 16px; }
+    .install p { color: #555; margin-bottom: 32px; font-size: 1rem; }
+    .install .cta {
+      display: inline-block;
+      background: #4a154b;
+      color: #fff;
+      font-weight: 700;
+      padding: 14px 36px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .install .cta:hover { background: #611f69; }
+
+    .links-section {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 40px;
+      border-top: 1px solid #e8e8e8;
+      font-size: 0.85rem;
+      color: #888;
+    }
+    footer a { color: #4a154b; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>TableTalk</h1>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#support">Support</a>
+    <a href="PRIVACY.md">Privacy Policy</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <h2>AI-powered tables, right inside Slack</h2>
+  <p>Create, edit, and share formatted tables using plain English. No spreadsheets, no copy-pasting — just type <code>/table</code> and go.</p>
+  <a href="https://slack.com/oauth/v2/authorize?client_id=YOUR_CLIENT_ID&scope=commands,chat:write,chat:write.public,chat:write.ephemeral" class="cta">Add to Slack</a>
+</div>
+
+<section id="features">
+  <h3>Everything you need to build tables in Slack</h3>
+  <div class="features">
+    <div class="feature-card">
+      <div class="icon">🤖</div>
+      <h4>AI Table Generation</h4>
+      <p>Describe what you need in plain English and TableTalk generates a perfectly formatted table in seconds.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">✏️</div>
+      <h4>Natural Language Editing</h4>
+      <p>Say "add a priority column" or "remove the third row" — the AI applies your changes instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">👀</div>
+      <h4>Preview Before Posting</h4>
+      <p>See your table privately before posting. No mistakes, no unintended messages to the channel.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📝</div>
+      <h4>Manual Editing</h4>
+      <p>Prefer hands-on control? Switch to manual mode anytime for precise updates to structure and data.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <h4>Privacy First</h4>
+      <p>No permanent data storage. Your table descriptions are processed ephemerally and never retained.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🆓</div>
+      <h4>Free to Use</h4>
+      <p>No credit card, no per-user pricing. TableTalk is free for all Slack workspaces.</p>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>⚠️ AI Disclaimer:</strong> TableTalk uses OpenAI's GPT-4o-mini to generate and edit tables. Like all AI systems, responses may occasionally be inaccurate, incomplete, or unexpected. Always review AI-generated content before sharing it with your team. TableTalk is not liable for decisions made based on AI-generated table data.
+  </div>
+</section>
+
+<section id="how-it-works" class="how-it-works">
+  <h3>How It Works</h3>
+  <ol>
+    <li><strong>Install TableTalk</strong> from the Slack Marketplace into your workspace.</li>
+    <li><strong>Type <code>/table</code></strong> followed by a plain-English description of the table you want.</li>
+    <li><strong>TableTalk generates</strong> a formatted Markdown table and shows it to you privately.</li>
+    <li><strong>Edit with AI or manually</strong> until the table looks exactly right.</li>
+    <li><strong>Post to channel</strong> when you're ready — the table is shared with your team.</li>
+  </ol>
+
+  <div class="code-block">
+    /table Create a sprint planning table with 5 tasks, owners, story points, and status<br/>
+    /table Compare AWS, GCP, and Azure on pricing, storage, and regions<br/>
+    /table Weekly team availability with days and morning/afternoon/evening slots
+  </div>
+</section>
+
+<div class="install" id="install">
+  <h3>Ready to get started?</h3>
+  <p>Install TableTalk from the Slack Marketplace and start creating tables in seconds.</p>
+  <a href="https://slack.com/oauth/v2/authorize?client_id=YOUR_CLIENT_ID&scope=commands,chat:write,chat:write.public,chat:write.ephemeral" class="cta">Add to Slack</a>
+  <div class="links-section">
+    <a href="PRIVACY.md">Privacy Policy</a>
+    <a href="TERMS_OF_SERVICE.md">Terms of Service</a>
+    <a href="#support">Support</a>
+    <a href="https://github.com/preetrajdeo/tabletalk">GitHub</a>
+  </div>
+</div>
+
+<section id="support">
+  <h3>Support</h3>
+  <p style="color:#555;line-height:1.7;margin-top:12px;">
+    Need help? Encountered a problem? We're here for you.
+  </p>
+  <ul style="margin-top:16px;padding-left:24px;color:#333;line-height:2;font-size:0.95rem;">
+    <li><strong>Documentation:</strong> <a href="https://github.com/preetrajdeo/tabletalk/blob/main/docs/SUPPORT.md">Full support guide</a></li>
+    <li><strong>Bug Reports:</strong> <a href="https://github.com/preetrajdeo/tabletalk/issues">GitHub Issues</a></li>
+    <li><strong>Email:</strong> <a href="mailto:preetrajdeo@gmail.com">preetrajdeo@gmail.com</a></li>
+  </ul>
+  <p style="margin-top:20px;color:#555;font-size:0.9rem;">Response time: within 24 hours for critical issues, 48 hours for general inquiries.</p>
+</section>
+
+<footer>
+  &copy; 2025 TableTalk &nbsp;|&nbsp;
+  <a href="PRIVACY.md">Privacy Policy</a> &nbsp;|&nbsp;
+  <a href="TERMS_OF_SERVICE.md">Terms of Service</a> &nbsp;|&nbsp;
+  <a href="mailto:preetrajdeo@gmail.com">Contact</a>
+</footer>
+
+</body>
+</html>

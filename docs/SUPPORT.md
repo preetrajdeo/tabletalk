@@ -5,7 +5,7 @@ Welcome to TableTalk! This guide will help you get started and troubleshoot comm
 ## Quick Start
 
 ### Installation
-1. Visit the [Slack App Directory](#) (or install from your workspace admin)
+1. Visit the [Slack Marketplace](#) (or install from your workspace admin)
 2. Click "Add to Slack"
 3. Authorize the required permissions
 4. Start using `/table` in any channel!
